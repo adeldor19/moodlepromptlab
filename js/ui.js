@@ -1,16 +1,18 @@
-import {questionTypes} from "./data/question-types.js";
+import {questionTypes,fieldHelp} from "./data/question-types.js";
 import {generatePrompt} from "./generators/index.js";
 import {getSaved,getHistory,saveTemplate,addHistory,removeSaved} from "./storage.js";
 const $=s=>document.querySelector(s);let lastData=null,lastPrompt="";
 function toast(m){const e=$("#toast");e.textContent=m;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2200)}
 function safe(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function makeField(f){const[id,label,type,initial,...opts]=f;
- if(type==="checkbox")return `<label class="check-row full"><input type="checkbox" id="sp-${id}" ${initial?"checked":""}><span>${label}</span></label>`;
- if(type==="select")return `<div class="field"><label for="sp-${id}">${label}</label><select class="control" id="sp-${id}">${opts.map(x=>`<option>${safe(x)}</option>`).join("")}</select></div>`;
- if(type==="textarea")return `<div class="field full"><label for="sp-${id}">${label}</label><textarea class="control" rows="2" id="sp-${id}" placeholder="${safe(initial)}"></textarea></div>`;
- return `<div class="field"><label for="sp-${id}">${label}</label><input class="control" id="sp-${id}" type="${type==="number"?"number":"text"}" value="${safe(initial)}"></div>`;
+function makeField(f,help=""){
+ const[id,label,type,initial,...opts]=f;
+ const hint=help?("<small class=\"field-help\">"+safe(help)+"</small>"):"";
+ if(type==="checkbox")return "<label class=\"check-row full\"><input type=\"checkbox\" id=\"sp-"+id+"\" "+(initial?"checked":"")+"><span><b>"+label+"</b>"+hint+"</span></label>";
+ if(type==="select")return "<div class=\"field\"><label for=\"sp-"+id+"\">"+label+"</label><select class=\"control\" id=\"sp-"+id+"\">"+opts.map(x=>"<option>"+safe(x)+"</option>").join("")+"</select>"+hint+"</div>";
+ if(type==="textarea")return "<div class=\"field full\"><label for=\"sp-"+id+"\">"+label+"</label><textarea class=\"control\" rows=\"2\" id=\"sp-"+id+"\" placeholder=\""+safe(initial)+"\"></textarea>"+hint+"</div>";
+ return "<div class=\"field\"><label for=\"sp-"+id+"\">"+label+"</label><input class=\"control\" id=\"sp-"+id+"\" type=\""+(type==="number"?"number":"text")+"\" value=\""+safe(initial)+"\">"+hint+"</div>";
 }
-function renderType(){const t=questionTypes.find(x=>x.id===$("#question-type").value)||questionTypes[0];$("#type-description").textContent=`${t.group} · ${t.plugin}. ${t.description}`;$("#specific-fields").innerHTML=t.fields.map(makeField).join("")}
+function renderType(){const t=questionTypes.find(x=>x.id===$("#question-type").value)||questionTypes[0];$("#type-description").textContent=`${t.group} · ${t.plugin}. ${t.description}`;$("#specific-fields").innerHTML=t.fields.map(f=>makeField(f,fieldHelp[t.id]?.[f[0]]||"")).join("")}
 function collect(){const type=questionTypes.find(t=>t.id===$("#question-type").value),specific={};type.fields.forEach(([id])=>{const e=$("#sp-"+id);if(e)specific[id]=e.type==="checkbox"?e.checked:e.value});
  const data={typeId:type.id,subject:$("#subject").value,level:$("#level").value,topic:$("#topic").value,statement:$("#statement").value,difficulty:$("#difficulty").value,quantity:Math.max(1,Math.min(100,Number($("#quantity").value)||1)),competencies:$("#competencies").value,criteria:$("#criteria").value,knowledge:$("#knowledge").value,curriculumEnabled:$("#curriculum-enabled").checked,xmlOutput:$("#xml-output").value,category:$("#category").value,specific};
  data.specificText=type.fields.map(([id,label])=>`${label}: ${specific[id]===true?"Sí":specific[id]===false?"No":specific[id]||"No especificado"}`).join("\\n");return{data,type}}
