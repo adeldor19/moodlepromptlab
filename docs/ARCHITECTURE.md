@@ -1,0 +1,2 @@
+# Arquitectura
+Catálogo de tipos, UI dinámica, enrutador de generadores, base común, generadores especializados y almacenamiento local. Para añadir un tipo: registrar sus campos, decidir si necesita motor propio y documentar rigurosamente las dependencias del plugin. No afirmar importabilidad sin documentación contrastada.
