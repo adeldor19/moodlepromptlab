@@ -1,0 +1,35 @@
+import {questionTypes} from "./data/question-types.js";
+import {generatePrompt} from "./generators/index.js";
+import {getSaved,getHistory,saveTemplate,addHistory,removeSaved} from "./storage.js";
+const $=s=>document.querySelector(s);let lastData=null,lastPrompt="";
+function toast(m){const e=$("#toast");e.textContent=m;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2200)}
+function makeField(f){const[id,label,type,initial,...opts]=f;
+ if(type==="checkbox")return `<label class="check-row full"><input type="checkbox" id="sp-${id}" ${initial?"checked":""}><span>${label}</span></label>`;
+ if(type==="select")return `<div class="field"><label for="sp-${id}">${label}</label><select class="control" id="sp-${id}">${opts.map(x=>`<option>${x}</option>`).join("")}</select></div>`;
+ if(type==="textarea")return `<div class="field full"><label for="sp-${id}">${label}</label><textarea class="control" rows="2" id="sp-${id}" placeholder="${initial}"></textarea></div>`;
+ return `<div class="field"><label for="sp-${id}">${label}</label><input class="control" id="sp-${id}" type="${type==="number"?"number":"text"}" value="${initial}"></div>`;
+}
+function renderType(){const t=questionTypes.find(x=>x.id===$("#question-type").value)||questionTypes[0];$("#type-description").textContent=`${t.group} · ${t.plugin}. ${t.description}`;$("#specific-fields").innerHTML=t.fields.map(makeField).join("")}
+function collect(){const type=questionTypes.find(t=>t.id===$("#question-type").value),specific={};type.fields.forEach(([id])=>{const e=$("#sp-"+id);if(e)specific[id]=e.type==="checkbox"?e.checked:e.value});
+ const data={typeId:type.id,subject:$("#subject").value,level:$("#level").value,topic:$("#topic").value,statement:$("#statement").value,difficulty:$("#difficulty").value,quantity:Math.max(1,Math.min(100,Number($("#quantity").value)||1)),competencies:$("#competencies").value,criteria:$("#criteria").value,knowledge:$("#knowledge").value,curriculumEnabled:$("#curriculum-enabled").checked,xmlOutput:$("#xml-output").value,category:$("#category").value,specific};
+ data.specificText=type.fields.map(([id,label])=>`${label}: ${specific[id]===true?"Sí":specific[id]===false?"No":specific[id]||"No especificado"}`).join("\\n");return{data,type}}
+export function initUI(){
+ $("#question-type").innerHTML=questionTypes.map(t=>`<option value="${t.id}">${t.name} · ${t.group}</option>`).join("");$("#question-type").addEventListener("change",renderType);renderType();
+ $("#generate-button").onclick=()=>{const{data,type}=collect();if(!data.statement.trim()&&!data.topic.trim()){toast("Añade un tema o descripción.");return}lastData=data;lastPrompt=generatePrompt(data,type);$("#prompt-output").value=lastPrompt;$("#result-panel").hidden=false;addHistory({title:`${type.name} · ${data.topic||data.subject}`,prompt:lastPrompt,data});renderLists();$("#result-panel").scrollIntoView({behavior:"smooth"})};
+ $("#copy-prompt").onclick=async()=>{try{await navigator.clipboard.writeText(lastPrompt);toast("Prompt copiado.")}catch{$("#prompt-output").select();toast("Selecciona y copia el texto.")}};
+ $("#download-prompt").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lastPrompt],{type:"text/plain;charset=utf-8"}));a.download="moodle-prompt.txt";a.click();URL.revokeObjectURL(a.href)};
+ $("#save-template").onclick=()=>{if(!lastData)return;const t=questionTypes.find(x=>x.id===lastData.typeId);saveTemplate({title:`${t.name} · ${lastData.topic||lastData.subject}`,data:lastData,prompt:lastPrompt});renderLists();toast("Plantilla guardada.")};
+ $("#reset-button").onclick=()=>{if(!confirm("¿Restablecer el formulario?"))return;$("#question-type").value="multichoice";$("#subject").value="";$("#level").value="1º ESO";$("#topic").value="";$("#statement").value="";$("#difficulty").value="Media";$("#quantity").value="1";$("#competencies").value="";$("#criteria").value="";$("#knowledge").value="";$("#curriculum-enabled").checked=true;$("#xml-output").value="complete";$("#category").value="";renderType();$("#result-panel").hidden=true;toast("Formulario restablecido.")};
+ $("#help-button").onclick=()=>$("#help-dialog").showModal();
+ document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>switchView(b.dataset.view));renderLists();
+}
+function switchView(v){document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));["builder","saved","history"].forEach(x=>$("#"+x+"-view").hidden=x!==v);$("#page-title").textContent=({builder:"Generador de prompts",saved:"Mis plantillas",history:"Historial"})[v];if(v!=="builder")renderLists()}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderLists(){const saved=getSaved(),hist=getHistory();$("#saved-count").textContent=saved.length;
+ $("#saved-list").innerHTML=saved.length?saved.map(x=>`<div class="saved-item"><div><strong>${esc(x.title)}</strong><small>${new Date(x.savedAt).toLocaleString("es-ES")}</small></div><div class="saved-actions"><button class="mini-button" data-load="${x.id}">Cargar</button><button class="mini-button" data-delete="${x.id}">Eliminar</button></div></div>`).join(""):`<div class="empty-state"><strong>Aún no tienes plantillas</strong>Genera un prompt y guárdalo para reutilizarlo.</div>`;
+ $("#history-list").innerHTML=hist.length?hist.map(x=>`<div class="saved-item"><div><strong>${esc(x.title)}</strong><small>${new Date(x.createdAt).toLocaleString("es-ES")}</small></div><div class="saved-actions"><button class="mini-button" data-history="${x.id}">Recuperar</button></div></div>`).join(""):`<div class="empty-state"><strong>Tu historial está vacío</strong>Los prompts generados aparecerán aquí.</div>`;
+ document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{removeSaved(b.dataset.delete);renderLists()});
+ document.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>loadItem(saved.find(x=>x.id===b.dataset.load)));
+ document.querySelectorAll("[data-history]").forEach(b=>b.onclick=()=>loadItem(hist.find(x=>x.id===b.dataset.history)));
+}
+function loadItem(item){if(!item)return;switchView("builder");const d=item.data;$("#question-type").value=d.typeId;renderType();$("#subject").value=d.subject;$("#level").value=d.level;$("#topic").value=d.topic;$("#statement").value=d.statement;$("#difficulty").value=d.difficulty;$("#quantity").value=d.quantity;$("#competencies").value=d.competencies;$("#criteria").value=d.criteria;$("#knowledge").value=d.knowledge;$("#curriculum-enabled").checked=d.curriculumEnabled;$("#xml-output").value=d.xmlOutput;$("#category").value=d.category;Object.entries(d.specific||{}).forEach(([id,v])=>{const e=$("#sp-"+id);if(e){if(e.type==="checkbox")e.checked=v;else e.value=v}});toast("Configuración recuperada.")}
