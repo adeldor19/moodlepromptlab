@@ -30,7 +30,7 @@ DATOS CURRICULARES APORTADOS
 - Saberes básicos: ${value(data.knowledge)}
 
 FORMATO Y COMPATIBILIDAD
-- Entrega el XML completo desde la declaración XML hasta </quiz> en un único bloque \`\`\`xml.
+- Entrega el XML completo desde la declaración XML hasta </quiz> en un único bloque de código.
 - Utiliza Moodle XML y las etiquetas propias del tipo seleccionado.
 - Escapa caracteres XML y usa CDATA cuando proceda para HTML.
 - No mezcles etiquetas de otros tipos de pregunta.
@@ -45,6 +45,6 @@ CONFIGURACIÓN ESPECÍFICA
 ${data.specificText}
 
 DEPENDENCIAS
-La compatibilidad depende de la versión de Moodle y de los plugins instalados. Para plugins de terceros, usa únicamente estructuras documentadas para su versión. Si falta esa información, adviértelo y no inventes XML supuestamente válido.`;
+La compatibilidad depende de Moodle y de los plugins instalados. Para plugins de terceros, usa estructuras documentadas para su versión; si falta esa información, adviértelo y no inventes XML supuestamente válido.`;
 }
 export function xmlOutputInstruction(mode){return mode==="xml-explain"?"Después del XML, añade una explicación técnica breve.":"La salida debe contener exclusivamente el bloque Moodle XML completo."}
