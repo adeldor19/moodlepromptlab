@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="Generador de prompts especializados para crear preguntas Moodle con IA.">
+<title>Moodle Prompt Lab</title>
+<link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+<a class="brand" href="#"><span class="brand-mark">M</span><span><strong>MOODLE</strong><small>PROMPT LAB</small></span></a>
+<div class="sidebar-label">ESPACIO DE TRABAJO</div>
+<button class="nav-item active" data-view="builder">✦ &nbsp; Generador de prompts</button>
+<button class="nav-item" data-view="saved">▣ &nbsp; Mis plantillas <span class="nav-count" id="saved-count">0</span></button>
+<button class="nav-item" data-view="history">◷ &nbsp; Historial</button>
+<div class="sidebar-bottom"><div class="sidebar-note"><strong>Una herramienta para docentes</strong><p>Diseña instrucciones precisas para crear bancos de preguntas de calidad.</p></div><span class="version">MPL · Versión 0.1</span></div>
+</aside>
+<main class="main">
+<header class="topbar"><div><span class="eyebrow">HERRAMIENTA DE AUTORÍA DOCENTE</span><h1 id="page-title">Generador de prompts</h1></div><div class="topbar-right"><span class="local-pill">● Procesamiento local</span><button class="icon-button" id="help-button">?</button></div></header>
+<section id="builder-view" class="view">
+<div class="intro-row"><div><h2>Construye tu próximo banco de preguntas.</h2><p>Configura el ejercicio. Moodle Prompt Lab redactará las instrucciones técnicas para tu IA.</p></div><span class="step-indicator">01 · CONFIGURACIÓN</span></div>
+<div class="workspace">
+<section class="panel config-panel">
+<div class="panel-heading"><div><span class="section-kicker">01 / FORMATO</span><h3>Tipo de pregunta</h3></div><span class="counter">15 formatos</span></div>
+<label class="field-label" for="question-type">Selecciona el formato de Moodle</label><select id="question-type" class="control"></select><div class="type-description" id="type-description"></div>
+<div class="separator"></div><div class="panel-heading compact"><div><span class="section-kicker">02 / CONTENIDO</span><h3>Datos del ejercicio</h3></div></div>
+<div class="field-grid">
+<div class="field"><label for="subject">Asignatura</label><input id="subject" class="control" value="Tecnología e Ingeniería"></div>
+<div class="field"><label for="level">Nivel educativo</label><select id="level" class="control"><option>1º ESO</option><option>2º ESO</option><option>3º ESO</option><option>4º ESO</option><option selected>1º Bachillerato</option><option>2º Bachillerato</option><option>Formación Profesional</option><option>Otro</option></select></div>
+<div class="field full"><label for="topic">Tema o unidad didáctica</label><input id="topic" class="control" placeholder="Ej. Mecanismos y transmisión del movimiento"></div>
+<div class="field full"><label for="statement">Contexto y descripción del ejercicio</label><textarea id="statement" class="control" rows="4" placeholder="Describe la situación, los conocimientos que debe aplicar el alumnado y qué se espera que haga..."></textarea></div>
+<div class="field"><label for="difficulty">Dificultad</label><select id="difficulty" class="control"><option>Básica</option><option selected>Media</option><option>Avanzada</option><option>Progresiva</option></select></div>
+<div class="field"><label for="quantity">Número de preguntas</label><input id="quantity" class="control" type="number" min="1" max="100" value="1"></div>
+</div>
+<div class="separator"></div><div class="panel-heading compact"><div><span class="section-kicker">03 / CONFIGURACIÓN</span><h3>Opciones del formato</h3></div><span class="optional-tag">Adaptativo</span></div><div id="specific-fields" class="field-grid"></div>
+<div class="separator"></div><div class="panel-heading compact"><div><span class="section-kicker">04 / CURRÍCULO</span><h3>Contextualización LOMLOE</h3></div><span class="optional-tag">Andalucía</span></div>
+<p class="helper">Aporta los elementos curriculares concretos. Si se dejan vacíos, la IA deberá evitar inventar códigos o correspondencias oficiales y señalar los datos que no pueda verificar.</p>
+<div class="field-grid">
+<div class="field full"><label for="competencies">Competencias específicas (opcional)</label><textarea id="competencies" class="control" rows="2"></textarea></div>
+<div class="field full"><label for="criteria">Criterios de evaluación (opcional)</label><textarea id="criteria" class="control" rows="2"></textarea></div>
+<div class="field full"><label for="knowledge">Saberes básicos (opcional)</label><textarea id="knowledge" class="control" rows="2"></textarea></div>
+<label class="check-row full"><input id="curriculum-enabled" type="checkbox" checked><span><b>Incluir contextualización curricular andaluza</b><small>LOMLOE, normativa estatal y currículo de Andalucía aplicable al nivel.</small></span></label>
+</div>
+<div class="separator"></div><div class="panel-heading compact"><div><span class="section-kicker">05 / ENTREGA</span><h3>Formato de salida</h3></div></div>
+<div class="field-grid"><div class="field"><label for="xml-output">Salida solicitada</label><select id="xml-output" class="control"><option value="complete" selected>Moodle XML completo</option><option value="xml-explain">XML + explicación técnica</option></select></div><div class="field"><label for="category">Categoría del banco</label><input id="category" class="control" placeholder="Tecnología / Mecanismos"></div></div>
+<div class="action-row"><button class="button button-secondary" id="reset-button">Restablecer</button><button class="button button-primary" id="generate-button">✦ Generar mi prompt <span>→</span></button></div>
+</section>
+<aside class="side-column">
+<div class="info-card dark-card"><span class="card-icon">✦</span><span class="section-kicker">MODO HÍBRIDO</span><h3>Sencillo cuando lo necesitas. Potente cuando lo exiges.</h3><p>Los campos esenciales están a la vista. Cada tipo incorpora opciones específicas.</p><div class="tag-list"><span>Sin API</span><span>Sin servidor</span><span>100% local</span></div></div>
+<div class="info-card"><span class="section-kicker">RECOMENDACIÓN</span><h3>Cuanto mejor sea el contexto, mejor será el resultado.</h3><p>Indica qué debe demostrar el alumnado, no solo qué tema quieres preguntar. Añade errores frecuentes y criterios de corrección.</p></div>
+<div class="info-card checklist-card"><span class="section-kicker">EL PROMPT INCLUIRÁ</span><ul><li>Rol experto y contexto didáctico</li><li>Reglas técnicas del tipo elegido</li><li>Compatibilidad Moodle XML</li><li>Retroalimentación y evaluación</li><li>Comprobaciones antes de entregar</li></ul></div>
+</aside></div>
+<section class="result-panel" id="result-panel" hidden><div class="result-heading"><div><span class="section-kicker">RESULTADO / PROMPT GENERADO</span><h2>Tu prompt está preparado.</h2><p>Cópialo y pégalo en tu IA habitual.</p></div><span class="ready-badge">● LISTO PARA COPIAR</span></div><textarea id="prompt-output" class="prompt-output" spellcheck="false"></textarea><div class="result-actions"><button class="button button-secondary" id="save-template">Guardar como plantilla</button><button class="button button-secondary" id="download-prompt">Descargar .txt</button><button class="button button-primary" id="copy-prompt">▣ Copiar prompt completo</button></div></section>
+</section>
+<section id="saved-view" class="view simple-view" hidden><div class="intro-row"><div><h2>Mis plantillas</h2><p>Configuraciones guardadas en este navegador.</p></div></div><div id="saved-list" class="list-panel"></div></section>
+<section id="history-view" class="view simple-view" hidden><div class="intro-row"><div><h2>Historial de prompts</h2><p>Prompts generados en este dispositivo.</p></div></div><div id="history-list" class="list-panel"></div></section>
+<footer><span>MOODLE PROMPT LAB</span><span>Herramienta de apoyo a la creación de recursos educativos · 2026</span></footer>
+</main></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="help-dialog" class="help-dialog"><form method="dialog"><button class="dialog-close">×</button><span class="section-kicker">ACERCA DE LA HERRAMIENTA</span><h2>Moodle Prompt Lab</h2><p>Esta aplicación genera prompts para una IA externa. No ejecuta la IA ni valida el XML contra un Moodle real.</p><p>Los tipos de plugins requieren su instalación y versiones compatibles. La contextualización curricular debe contrastarse con la normativa vigente y la programación didáctica del centro.</p><button class="button button-primary">Entendido</button></form></dialog>
+<script type="module" src="js/app.js"></script>
+</body></html>
